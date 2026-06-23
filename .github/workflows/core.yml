@@ -111,4 +111,11 @@ jobs:
         with:
           name: symbols
           path: build/symbols
-
+      - name: Create Release
+        if: \${{ github.ref_type == 'tag' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            zygisk/release/Vector-*-Release.zip
+            zygisk/release/Vector-*-Debug.zip
+          generate_release_notes: true
