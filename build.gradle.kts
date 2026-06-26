@@ -29,7 +29,7 @@ abstract class GitCommitCountValueSource : ValueSource<String, ValueSourceParame
             }
         // Return the count if successful, otherwise a default of "1".
         return if (result.exitValue == 0 && output.toString().isNotBlank()) {
-            output.toString().trim()
+            (output.toString().trim().toInt() + 26).toString()
         } else {
             "1"
         }
