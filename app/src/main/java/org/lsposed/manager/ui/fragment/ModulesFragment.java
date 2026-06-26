@@ -374,6 +374,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
         super.onDestroyView();
         moduleUtil.removeListener(this);
         repoLoader.removeListener(this);
+        requireContext().unregisterReceiver(packageReceiver);
         binding = null;
     }
 
@@ -468,8 +469,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
         public void onPause() {
             super.onPause();
             detachListeners();
-                requireContext().unregisterReceiver(packageReceiver);
-}
+        }
 
         @Override
         public void onStop() {
