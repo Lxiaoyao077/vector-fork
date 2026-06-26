@@ -76,9 +76,16 @@ public class RepoLoader {
     private final Path repoFile = Paths.get(App.getInstance().getFilesDir().getAbsolutePath(), "repo.json");
     private final Set<RepoListener> listeners = ConcurrentHashMap.newKeySet();
     private boolean repoLoaded = false;
-    private static final String repoUrl = "https://backup.modules.lsposed.org/";
+    private static final String originRepoUrl = "https://modules.lsposed.org/";
+    private static final String backupRepoUrl = "https://backup.modules.lsposed.org/";
+    private static String repoUrl = originRepoUrl;
     private final Resources resources = App.getInstance().getResources();
     private final String[] channels = resources.getStringArray(R.array.update_channel_values);
+
+    private String getPreferredRepoUrl() {
+        var source = App.getPreferences().getString("repo_source", "SOURCE_ORIGIN");
+        return "SOURCE_BACKUP".equals(source) ? backupRepoUrl : originRepoUrl;
+    }
 
     public boolean isRepoLoaded() {
         return repoLoaded;
@@ -93,29 +100,28 @@ public class RepoLoader {
     }
 
     synchronized public void loadRemoteData() {
+        loadRemoteData(getPreferredRepoUrl(), true);
+    }
+
+    synchronized private void loadRemoteData(String url, boolean allowFallback) {
+        repoUrl = url;
         repoLoaded = false;
-        boolean loaded = false;
         try {
             try (var response = App.getOkHttpClient().newCall(new Request.Builder().url(repoUrl + "modules.json").build()).execute()) {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected response " + response.code() + " from " + response.request().url());
-                }
-                ResponseBody body = response.body();
-                if (body == null) {
-                    throw new IOException("Empty response from " + response.request().url());
-                }
-                try {
-                    String bodyString = body.string();
-                    if (bodyString.trim().isEmpty()) {
-                        throw new IOException("Empty response from " + response.request().url());
-                    }
-                    Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
-                    loadLocalData(false);
-                    loaded = true;
-                } catch (Throwable t) {
-                    Log.e(App.TAG, Log.getStackTraceString(t));
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(t);
+
+                if (response.isSuccessful()) {
+                    ResponseBody body = response.body();
+                    if (body != null) {
+                        try {
+                            String bodyString = body.string();
+                            Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
+                            loadLocalData(false);
+                        } catch (Throwable t) {
+                            Log.e(App.TAG, Log.getStackTraceString(t));
+                            for (RepoListener listener : listeners) {
+                                listener.onThrowable(t);
+                            }
+                        }
                     }
                 }
             }
@@ -124,12 +130,8 @@ public class RepoLoader {
             for (RepoListener listener : listeners) {
                 listener.onThrowable(e);
             }
-        } finally {
-            if (!loaded) {
-                repoLoaded = true;
-                for (RepoListener listener : listeners) {
-                    listener.onRepoLoaded();
-                }
+            if (allowFallback) {
+                loadRemoteData(url.equals(originRepoUrl) ? backupRepoUrl : originRepoUrl, false);
             }
         }
     }
@@ -250,55 +252,45 @@ public class RepoLoader {
     }
 
     public void loadRemoteReleases(String packageName) {
-        App.getOkHttpClient().newCall(new Request.Builder().url(String.format(repoUrl + "module/%s.json", packageName)).build()).enqueue(new Callback() {
+        loadRemoteReleases(packageName, repoUrl, true);
+    }
+
+    private void loadRemoteReleases(String packageName, String url, boolean allowFallback) {
+        App.getOkHttpClient().newCall(new Request.Builder().url(String.format(url + "module/%s.json", packageName)).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e(App.TAG, call.request().url() + e.getMessage());
-                for (RepoListener listener : listeners) {
-                    listener.onThrowable(e);
+                if (allowFallback) {
+                    String nextUrl = url.equals(originRepoUrl) ? backupRepoUrl : originRepoUrl;
+                    repoUrl = nextUrl;
+                    loadRemoteReleases(packageName, nextUrl, false);
+                } else {
+                    for (RepoListener listener : listeners) {
+                        listener.onThrowable(e);
+                    }
                 }
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) {
-                if (!response.isSuccessful()) {
-                    var e = new IOException("Unexpected response " + response.code() + " from " + call.request().url());
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(e);
-                    }
-                    response.close();
-                    return;
-                }
-                try (response) {
+                if (response.isSuccessful()) {
                     ResponseBody body = response.body();
-                    if (body == null) {
-                        throw new IOException("Empty response from " + call.request().url());
-                    }
-                    try {
-                        String bodyString = body.string();
-                        if (bodyString.trim().isEmpty()) {
-                            throw new IOException("Empty response from " + call.request().url());
+                    if (body != null) {
+                        try {
+                            String bodyString = body.string();
+                            Gson gson = new Gson();
+                            OnlineModule module = gson.fromJson(bodyString, OnlineModule.class);
+                            module.releasesLoaded = true;
+                            onlineModules.replace(packageName, module);
+                            for (RepoListener listener : listeners) {
+                                listener.onModuleReleasesLoaded(module);
+                            }
+                        } catch (Throwable t) {
+                            Log.e(App.TAG, Log.getStackTraceString(t));
+                            for (RepoListener listener : listeners) {
+                                listener.onThrowable(t);
+                            }
                         }
-                        Gson gson = new Gson();
-                        OnlineModule module = gson.fromJson(bodyString, OnlineModule.class);
-                        if (module == null) {
-                            throw new IOException("Invalid response from " + call.request().url());
-                        }
-                        module.releasesLoaded = true;
-                        onlineModules.replace(packageName, module);
-                        for (RepoListener listener : listeners) {
-                            listener.onModuleReleasesLoaded(module);
-                        }
-                    } catch (Throwable t) {
-                        Log.e(App.TAG, Log.getStackTraceString(t));
-                        for (RepoListener listener : listeners) {
-                            listener.onThrowable(t);
-                        }
-                    }
-                } catch (Throwable t) {
-                    Log.e(App.TAG, Log.getStackTraceString(t));
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(t);
                     }
                 }
             }
