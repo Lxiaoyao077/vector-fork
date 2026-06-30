@@ -19,15 +19,20 @@
 
 <resources>
 
-    <style name="Base.AppTheme.Light" parent="Theme.Material3.DynamicColors.Light.Rikka">
+    <style name="Base.AppTheme.Light" parent="Theme.Material3.DynamicColors.Light">
         <item name="android:windowLightStatusBar">true</item>
-        <item name="colorPrimaryVariant">@color/primary_dark_light_light_status_bar</item>
 
         <item name="android:statusBarColor">?android:colorBackground</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+
+        <!-- M3 2021 rounded corners -->
+        <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.AppTheme.ExtraLarge</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.AppTheme.Large</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.AppTheme.Medium</item>
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.AppTheme.Small</item>
 
         <!-- Preference title -->
         <item name="android:textAppearanceListItem">?textAppearanceSubtitle1</item>
@@ -39,11 +44,17 @@
 
     <style name="Theme.Light" parent="Base.AppTheme.Light" />
 
-    <style name="Base.AppTheme" parent="Theme.Material3.DynamicColors.Dark.Rikka">
+    <style name="Base.AppTheme" parent="Theme.Material3.DynamicColors.Dark">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+
+        <!-- M3 2021 rounded corners -->
+        <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.AppTheme.ExtraLarge</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.AppTheme.Large</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.AppTheme.Medium</item>
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.AppTheme.Small</item>
 
         <!-- Preference title -->
         <item name="android:textAppearanceListItem">?textAppearanceSubtitle1</item>
