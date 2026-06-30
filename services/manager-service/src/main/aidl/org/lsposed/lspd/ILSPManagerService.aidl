@@ -81,4 +81,8 @@ interface ILSPManagerService {
     boolean getAutoInclude(String packageName) = 51;
 
     boolean setAutoInclude(String packageName, boolean enable) = 52;
+
+    boolean getDexObfuscate() = 53;
+
+    void setDexObfuscate(boolean enabled) = 54;
 }

@@ -433,6 +433,14 @@ object ManagerService : ILSPManagerService.Stub() {
     }
   }
 
+  override fun getDexObfuscate() = PreferenceStore.isDexObfuscateEnabled()
+
+  override fun setDexObfuscate(enabled: Boolean) {
+    PreferenceStore.setDexObfuscate(enabled)
+    ConfigCache.state = ConfigCache.state.copy(isDexObfuscateEnabled = enabled)
+    ConfigCache.requestCacheUpdate()
+  }
+
   override fun performDexOptMode(packageName: String) =
       org.matrix.vector.daemon.utils.performDexOptMode(packageName)
 

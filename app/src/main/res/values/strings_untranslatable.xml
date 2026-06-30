@@ -22,4 +22,6 @@
     <string name="install_url" translatable="false">https://github.com/JingMatrix/Vector#install</string>
     <string name="latest_url" translatable="false">https://github.com/JingMatrix/Vector/releases/latest</string>
     <string name="settings_group_repo" translatable="false">@string/module_repo</string>
+    <string name="enabled">Enabled</string>
+    <string name="not_enabled">Not enabled</string>
 </resources>

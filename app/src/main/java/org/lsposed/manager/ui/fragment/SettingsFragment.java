@@ -149,6 +149,12 @@ public class SettingsFragment extends BaseFragment {
                 prefVerboseLogs.setOnPreferenceChangeListener((preference, newValue) -> ConfigManager.setVerboseLogEnabled(!(boolean) newValue));
             }
 
+            MaterialSwitchPreference dexObfuscatePreference = findPreference("dex_obfuscate_enabled");
+            if (dexObfuscatePreference != null && installed) {
+                dexObfuscatePreference.setChecked(ConfigManager.isDexObfuscateEnabled());
+                dexObfuscatePreference.setOnPreferenceChangeListener((preference, newValue) -> ConfigManager.setDexObfuscateEnabled((boolean) newValue));
+            }
+
             MaterialSwitchPreference notificationPreference = findPreference("enable_status_notification");
             if (notificationPreference != null) {
                 notificationPreference.setVisible(installed);
