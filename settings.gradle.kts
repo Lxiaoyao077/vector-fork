@@ -27,8 +27,7 @@ include(
     ":hiddenapi:bridge",
     ":legacy",
     ":shared:libxposed-annotation",
-    ":services:manager-service",
-    ":services:daemon-service",
+    ":services",
     ":xposed",
     ":zygisk",
 )
