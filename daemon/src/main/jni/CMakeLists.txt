@@ -3,7 +3,7 @@ project(daemon)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_subdirectory(${VECTOR_ROOT}/external external)
+add_subdirectory(${VECTOR_FORK_ROOT}/external external)
 
 set(SOURCES
         dex2oat.cpp
