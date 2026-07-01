@@ -3,7 +3,7 @@ plugins { alias(libs.plugins.agp.lib) }
 android {
     buildFeatures { aidl = true }
 
-    buildTypes { release { isMinifyEnabled = false } }
+    buildTypes { release { isMinifyEnabled = true } }
 
     sourceSets {
         named("main") {
