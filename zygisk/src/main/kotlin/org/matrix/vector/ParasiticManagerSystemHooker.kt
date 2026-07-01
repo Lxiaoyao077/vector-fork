@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo
 import org.lsposed.lspd.util.Utils
 import org.matrix.vector.impl.hookers.HandleSystemServerProcessHooker
 import org.matrix.vector.impl.hooks.VectorHookBuilder
+import io.github.libxposed.api.XposedInterface
 import org.matrix.vector.service.BridgeService
 
 /**
@@ -62,7 +63,7 @@ class ParasiticManagerSystemHooker : HandleSystemServerProcessHooker.Callback {
     }
 
     /** Intercept resolveActivity to redirect the Vector Manager to its dedicated process. */
-    private fun redirectManagerActivity(chain: VectorHookChain): Any? {
+    private fun redirectManagerActivity(chain: XposedInterface.Chain): Any? {
         val result = chain.proceed()
         val intent = chain.args[0] as? Intent ?: return result
 
@@ -73,7 +74,7 @@ class ParasiticManagerSystemHooker : HandleSystemServerProcessHooker.Callback {
             result as? ActivityInfo
                 ?: run {
                     Utils.logD(
-                        "Redirection: result is not ActivityInfo (was ${result?.javaClass?.name})")
+                        "Redirection: result is not ActivityInfo (was ${result?.java?.name})")
                     return result
                 }
 
