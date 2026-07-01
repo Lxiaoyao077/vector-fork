@@ -29,9 +29,9 @@ android {
             cmake {
                 arguments.addAll(
                     listOf(
-                        "-DVECTOR_INJECTED_PACKAGE_NAME=${injectedPackageName}",
-                        "-DVECTOR_INJECTED_PACKAGE_UID=${injectedPackageUid}",
-                        "-DVECTOR_MANAGER_PACKAGE_NAME=${defaultManagerPackageName}",
+                        "-DVECTOR_FORK_INJECTED_PACKAGE_NAME=${injectedPackageName}",
+                        "-DVECTOR_FORK_INJECTED_PACKAGE_UID=${injectedPackageUid}",
+                        "-DVECTOR_FORK_MANAGER_PACKAGE_NAME=${defaultManagerPackageName}",
                     )
                 )
             }
