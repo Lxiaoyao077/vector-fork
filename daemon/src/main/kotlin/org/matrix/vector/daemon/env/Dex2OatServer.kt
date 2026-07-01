@@ -135,11 +135,7 @@ object Dex2OatServer {
                 return
 
             val is64Bit = header[4] == 2.toByte()
-            val index =
-                when {
-                  is64Bit -> 2
-                  else -> -1
-                }
+            val index = if (is64Bit) 2 else -1
 
             if (index != -1 && dex2oatArray[index] == null) {
               dex2oatArray[index] = path
@@ -148,17 +144,20 @@ object Dex2OatServer {
             }
           }
         }
-        .onFailure { dex2oatArray[dex2oatArray.indexOf(path)] = null }
+        .onFailure {
+          val idx = dex2oatArray.indexOf(path)
+          if (idx != -1) dex2oatArray[idx] = null
+        }
   }
 
   private fun notMounted(): Boolean {
+    if (!File(WRAPPER64).exists()) {
+      for (i in 2 until 4) dex2oatArray[i] = null
+      return true
+    }
     for (i in 2 until 4) {
       val bin = dex2oatArray[i] ?: continue
       try {
-        if (!File(WRAPPER64).exists()) {
-          dex2oatArray[i] = null
-          continue
-        }
         val apex = Os.stat("/proc/1/root$bin")
         val wrapper = Os.stat(WRAPPER64)
         if (apex.st_dev != wrapper.st_dev || apex.st_ino != wrapper.st_ino) {
