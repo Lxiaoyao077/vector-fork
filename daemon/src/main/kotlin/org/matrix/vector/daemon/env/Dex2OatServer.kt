@@ -26,9 +26,7 @@ const val DEX2OAT_SELINUX_PERMISSIVE = 3
 const val DEX2OAT_CRASHED = 4
 
 object Dex2OatServer {
-  private const val WRAPPER32 = "bin/dex2oat32"
   private const val WRAPPER64 = "bin/dex2oat64"
-  private const val HOOKER32 = "bin/liboat_hook32.so"
   private const val HOOKER64 = "bin/liboat_hook64.so"
 
   private val dex2oatArray = arrayOfNulls<String>(6)
@@ -97,18 +95,13 @@ object Dex2OatServer {
   init {
     // Android 10 vs 11+ path differences
     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-      checkAndAddDex2Oat("/apex/com.android.runtime/bin/dex2oat")
-      checkAndAddDex2Oat("/apex/com.android.runtime/bin/dex2oatd")
       checkAndAddDex2Oat("/apex/com.android.runtime/bin/dex2oat64")
       checkAndAddDex2Oat("/apex/com.android.runtime/bin/dex2oatd64")
     } else {
-      checkAndAddDex2Oat("/apex/com.android.art/bin/dex2oat32")
-      checkAndAddDex2Oat("/apex/com.android.art/bin/dex2oatd32")
       checkAndAddDex2Oat("/apex/com.android.art/bin/dex2oat64")
       checkAndAddDex2Oat("/apex/com.android.art/bin/dex2oatd64")
     }
 
-    openDex2oat(4, "/data/adb/modules/zygisk_vector/bin/liboat_hook32.so")
     openDex2oat(5, "/data/adb/modules/zygisk_vector/bin/liboat_hook64.so")
   }
 
@@ -141,13 +134,11 @@ object Dex2OatServer {
                 header[3] != 'F'.code.toByte())
                 return
 
-            val is32Bit = header[4] == 1.toByte()
             val is64Bit = header[4] == 2.toByte()
             val isDebug = path.contains("dex2oatd")
 
             val index =
                 when {
-                  is32Bit -> if (isDebug) 1 else 0
                   is64Bit -> if (isDebug) 3 else 2
                   else -> -1
                 }
@@ -163,11 +154,10 @@ object Dex2OatServer {
   }
 
   private fun notMounted(): Boolean {
-    for (i in 0 until 4) {
+    for (i in 2 until 4) {
       val bin = dex2oatArray[i] ?: continue
       try {
-        val wrapperPath = if (i < 2) WRAPPER32 else WRAPPER64
-        if (!File(wrapperPath).exists()) {
+        if (!File(WRAPPER64).exists()) {
           dex2oatArray[i] = null
           continue
         }
@@ -213,15 +203,12 @@ object Dex2OatServer {
     val dex2oatExec = "u:object_r:dex2oat_exec:s0"
 
     if (SELinux.checkSELinuxAccess("u:r:dex2oat:s0", dex2oatExec, "file", "execute_no_trans")) {
-      SELinux.setFileContext(WRAPPER32, dex2oatExec)
       SELinux.setFileContext(WRAPPER64, dex2oatExec)
       setSockCreateContext("u:r:dex2oat:s0")
     } else {
-      SELinux.setFileContext(WRAPPER32, xposedFile)
       SELinux.setFileContext(WRAPPER64, xposedFile)
       setSockCreateContext("u:r:installd:s0")
     }
-    SELinux.setFileContext(HOOKER32, xposedFile)
     SELinux.setFileContext(HOOKER64, xposedFile)
 
     runCatching {
