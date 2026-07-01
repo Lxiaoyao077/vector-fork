@@ -111,15 +111,19 @@ object LogcatMonitor {
 
   private fun fdToPath(fd: Int) = if (fd == -1) null else Paths.get("/proc/self/fd", fd.toString())
 
+  // Cached reflection handle to avoid repeated lookups per log rotation
+  private val setIntMethod by lazy {
+    FileDescriptor::class.java
+        .getDeclaredMethod("setInt\$", Int::class.java)
+        .apply { isAccessible = true }
+  }
+
   /** Resurrects deleted log files from /proc/self/fd if an external process deletes them. */
   private fun checkFd(fd: Int) {
     if (fd == -1) return
     runCatching {
           val jfd = FileDescriptor()
-          jfd.javaClass
-              .getDeclaredMethod("setInt\$", Int::class.java)
-              .apply { isAccessible = true }
-              .invoke(jfd, fd)
+          setIntMethod.invoke(jfd, fd)
           val stat = Os.fstat(jfd)
 
           // st_nlink == 0 means the file was deleted but the FD is still held open
