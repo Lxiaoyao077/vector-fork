@@ -136,7 +136,7 @@ object ConfigCache {
     val obsoletePaths = mutableMapOf<String, String>()
 
     // --- Pass 1: Collect pending module loads (sequential, cursor is not thread-safe) ---
-    data class PendingLoad(
+    class PendingLoad(
         val pkgName: String,
         val apkPath: String,
         val appInfo: ApplicationInfo,
@@ -393,7 +393,7 @@ object ConfigCache {
     val currentState = state
 
     // --- Pass 1: Collect pending system_server module loads ---
-    data class SysPendingLoad(val module: Module, val pkgName: String, val apkPath: String)
+    class SysPendingLoad(val module: Module, val pkgName: String, val apkPath: String)
 
     val sysPendingLoads = mutableListOf<SysPendingLoad>()
 
