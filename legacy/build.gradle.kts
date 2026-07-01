@@ -12,7 +12,7 @@ dependencies {
     api(projects.xposed)
     implementation(projects.external.apache)
     implementation(projects.hiddenapi.bridge)
-    implementation(projects.services.daemonService)
+    implementation(projects.services)
     compileOnly(libs.androidx.annotation)
     compileOnly(projects.hiddenapi.stubs)
 }
