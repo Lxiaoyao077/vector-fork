@@ -132,13 +132,15 @@ object FileSystem {
    * Lazily loads resources from the daemon's APK path via reflection. This allows FakeContext to
    * access strings/drawables without a real application context.
    */
+  private val addAssetPathMethod by lazy {
+    AssetManager::class.java.getDeclaredMethod("addAssetPath", String::class.java).apply {
+      isAccessible = true
+    }
+  }
+
   val resources: Resources by lazy {
     val am = AssetManager::class.java.getDeclaredConstructor().newInstance()
-    val addAssetPath =
-        AssetManager::class.java.getDeclaredMethod("addAssetPath", String::class.java).apply {
-          isAccessible = true
-        }
-    addAssetPath.invoke(am, daemonApkPath.toString())
+    addAssetPathMethod.invoke(am, daemonApkPath.toString())
     @Suppress("DEPRECATION") Resources(am, null, null)
   }
 
